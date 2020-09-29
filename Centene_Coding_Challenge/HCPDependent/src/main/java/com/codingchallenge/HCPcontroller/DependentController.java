@@ -5,6 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,11 +40,17 @@ public class DependentController {
 	}
 	
 	@GetMapping("/dependent/{id}")
-	public Dependent findById(@PathVariable(value = "id") int dependentId) {
+	public ResponseEntity<Dependent> findById(@PathVariable(value = "id") int dependentId) {
+
+		Dependent dependent = new Dependent();
 		
-		Dependent dependent = dependentRepository.findById(dependentId);
+		try {	
+			dependent = dependentRepository.findById(dependentId);
+		}catch(Exception e) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 		
-		return dependent;
+		return ResponseEntity.ok(dependent);
 	} 
 	
 	@GetMapping("/enrollee/{id}/dependents")
@@ -57,11 +64,17 @@ public class DependentController {
 	}
 	
 	@PostMapping("/enrollee/{id}/dependent")
-	public Dependent addDependent(@PathVariable(name = "id") int enrolleeId, @Valid @RequestBody Dependent newDependent) {
+	public ResponseEntity<Dependent> addDependent(@PathVariable(name = "id") int enrolleeId, @Valid @RequestBody Dependent newDependent) {
 		
 		
-		Dependent dependent = dependentRepository.save(newDependent);
-		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
+		Enrollee enrollee = new Enrollee();
+		Dependent dependent = new Dependent();
+		
+		try {	
+			enrollee = enrolleeRepository.findById(enrolleeId);
+		}catch(Exception e) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 		
 		List<Dependent> dependents = enrollee.getDependents();
 		
@@ -71,14 +84,21 @@ public class DependentController {
 		
 		enrolleeRepository.save(enrollee);
 		
-		return dependent;
+		return ResponseEntity.ok(dependent);
 	}
 	
 	@PutMapping("/enrollee/{id}/dependent/{id}")
 	public ResponseEntity<Dependent> updateDependent(@PathVariable(value = "id") int enrolleeId, @PathVariable(value = "id") int dependentId, Dependent newDependent ){
 		
-		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
-		Dependent dependent = dependentRepository.findById(dependentId);
+		Enrollee enrollee = new Enrollee();
+		Dependent dependent = new Dependent();
+		
+		try {	
+			enrollee = enrolleeRepository.findById(enrolleeId);
+			dependent = dependentRepository.findById(dependentId);
+		}catch(Exception e) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 		
 		dependent.setFirstName(newDependent.getFirstName());
 		dependent.setLastName(newDependent.getLastName());
@@ -100,10 +120,17 @@ public class DependentController {
 	}
 	
 	@DeleteMapping("/enrollee/{id}/dependent/{id}")
-	public ResponseEntity<Dependent> deleteDependent(@PathVariable(value = "id") int enrolleeId, @PathVariable(value = "id") int dependentId){
+	public ResponseEntity<Dependent> deleteDependent(@PathVariable(value = "id") int enrolleeId, @PathVariable(value = "id") int dependentId) throws Exception{
 		
-		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
-		Dependent dependent = dependentRepository.findById(dependentId);
+		Enrollee enrollee = new Enrollee();
+		Dependent dependent = new Dependent();
+	
+	try {	
+		enrollee = enrolleeRepository.findById(enrolleeId);
+		dependent = dependentRepository.findById(dependentId);
+	}catch(Exception e) {
+		return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+	}
 		
 		List<Dependent> dependents = enrollee.getDependents();
 		for(int i = 0;i>dependents.size();i++) {
