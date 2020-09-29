@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,25 +38,38 @@ public class EnrolleeController {
 	}
 	
 	@GetMapping("/enrollee/{id}")
-	public Enrollee findEnrolleeById(@PathVariable(value = "id") int enrolleeId){
+	public ResponseEntity<Enrollee> findEnrolleeById(@PathVariable(value = "id") int enrolleeId){
 		
-		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
+		Enrollee enrollee = new Enrollee(); 
+		
+		try {	
+			enrollee = enrolleeRepository.findById(enrolleeId);
+		}catch(Exception e) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 		
 		
-		return enrollee;
+		return ResponseEntity.ok(enrollee);
 	}
 	
 	@PostMapping("/enrollee")
-	public Enrollee addEnrollee(@Valid @RequestBody Enrollee enrollee) {
+	public ResponseEntity<Enrollee> addEnrollee(@Valid @RequestBody Enrollee newEnrollee) {
 			
+		Enrollee enrollee  = enrolleeRepository.save(newEnrollee);
 		
-		return enrolleeRepository.save(enrollee);
+		return ResponseEntity.ok(enrollee);
 	}
 	
 	@PutMapping("/enrollee/{id}")
 	public ResponseEntity<Enrollee> updateEnrollee(@PathVariable(value = "id") int enrolleeId, @Valid @RequestBody Enrollee newEnrollee){
 		
-		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
+		Enrollee enrollee = new Enrollee(); 
+		
+		try {	
+			enrollee = enrolleeRepository.findById(enrolleeId);
+		}catch(Exception e) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 		
 		enrollee.setFirstName(newEnrollee.getFirstName());
 		enrollee.setLastName(newEnrollee.getLastName());
@@ -68,13 +82,17 @@ public class EnrolleeController {
 	}
 	
 	@DeleteMapping("/enrollee/{id}")
-	public Map<String,Boolean> deleteEnrollee(@PathVariable(value = "id") int enrolleId){
+public ResponseEntity<?> deleteDependent(@PathVariable(value = "id") int enrolleeId) throws Exception{
 		
-		Enrollee enrollee = enrolleeRepository.findById(enrolleId);
+	
+	try {	
+		enrolleeRepository.findById(enrolleeId);
+	}catch(Exception e) {
+		return  ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+	}
 		
-		enrolleeRepository.delete(enrollee);
-		Map<String,Boolean> response = new HashMap<>();
-		response.put("Delete", true);
-		return response;
+		enrolleeRepository.deleteById(enrolleeId);
+		
+		return ResponseEntity.ok().build();
 	}
 }
