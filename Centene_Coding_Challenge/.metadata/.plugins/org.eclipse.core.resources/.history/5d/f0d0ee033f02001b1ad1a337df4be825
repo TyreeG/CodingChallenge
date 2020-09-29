@@ -1,0 +1,105 @@
+package com.codingchallenge.HCP;
+
+import java.util.Date;
+
+import org.joda.time.LocalDate;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.HttpClientErrorException;
+
+import com.codingchallenge.HCPmodel.Dependent;
+
+import oracle.sql.DATE;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = HcpDependentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class HcpDependentApplicationTests{
+	
+	@Autowired
+	private TestRestTemplate restTemplate;
+
+	@LocalServerPort
+	private int port;
+
+	private String getRootUrl() {
+		return "http://localhost:" + port;
+	}
+
+	@Test
+	public void contextLoads() {
+	}
+
+	@Test
+	public void testFIndAllDependents() {
+		HttpHeaders headers = new HttpHeaders();
+		HttpEntity<String> entity = new HttpEntity<String>(null, headers);
+
+		ResponseEntity<String> response = restTemplate.exchange(getRootUrl() + "/dependents",
+				HttpMethod.GET, entity, String.class);
+
+		Assert.assertNotNull(response.getBody());
+	}
+	
+	@Test
+	public void testGetDependentById() {
+		Dependent dependent = restTemplate.getForObject(getRootUrl() + "/dependent/1", Dependent.class);
+		System.out.println(dependent.getFirstName());
+		Assert.assertNotNull(dependent);
+	}
+
+	@Test
+	public void testCreateDependent() {
+		int enrolleeId = 1;
+		
+		Dependent dependent = new Dependent();
+		dependent.setFirstName("John");
+		dependent.setLastName("Doe");
+		dependent.setBirthday("2009-08-18"); 
+
+		ResponseEntity<Dependent> postResponse = restTemplate.postForEntity(getRootUrl() + "/enrollee/" + enrolleeId + "/dependent", dependent, Dependent.class);
+		Assert.assertNotNull(postResponse);
+		Assert.assertNotNull(postResponse.getBody());
+	}
+	
+	@Test
+	public void testUpdateDependent() {
+		int enrolleeId = 1;
+		int dependentId = 2;
+		Dependent dependent = restTemplate.getForObject(getRootUrl() + "/dependent/" + dependentId, Dependent.class);
+		dependent.setFirstName("Mike");
+		dependent.setLastName("Lowery");
+
+		restTemplate.put(getRootUrl() + "/enrollee/" + enrolleeId + "/dependent/" + dependentId, dependent);
+
+		Dependent updatedDependent = restTemplate.getForObject(getRootUrl() + "/dependent/" + dependentId, Dependent.class);
+		Assert.assertNotNull(updatedDependent);
+	}
+
+	@Test
+	public void testDeleteDependent() {
+		int enrolleeId = 1;
+		int dependentId = 2;
+		 Dependent dependent = restTemplate.getForObject(getRootUrl() + "/dependent/" + dependentId, Dependent.class);
+		Assert.assertNotNull(dependent);
+
+		restTemplate.delete(getRootUrl() + "/enrollee/" + enrolleeId + "/dependent/" + dependentId);
+
+		try {
+			dependent = restTemplate.getForObject(getRootUrl() + "/dependent/" + dependentId, Dependent.class);
+		} catch (final HttpClientErrorException e) {
+			Assert.assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
+		}
+	}
+
+}

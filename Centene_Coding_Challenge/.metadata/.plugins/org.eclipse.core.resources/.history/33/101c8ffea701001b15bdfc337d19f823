@@ -1,0 +1,10 @@
+package com.codingchallenge.HCPrepository;
+
+import org.springframework.data.repository.CrudRepository;
+
+import com.codingchallenge.HCPmodel.Enrollee;
+
+public interface EnrolleeRepository extends CrudRepository<Enrollee, Integer> {
+		
+	public Enrollee findById(int id);
+}

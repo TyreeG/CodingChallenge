@@ -1,0 +1,110 @@
+package com.codingchallenge.HCPcontroller;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.codingchallenge.HCPmodel.Dependent;
+import com.codingchallenge.HCPmodel.Enrollee;
+import com.codingchallenge.HCPrepository.DependentRepository;
+import com.codingchallenge.HCPrepository.EnrolleeRepository;
+
+@RestController
+@RequestMapping("/api")
+public class DependentController {
+	
+	@Autowired
+	EnrolleeRepository enrolleeRepository;
+	
+	@Autowired
+	DependentRepository dependentRepository;
+	
+	@GetMapping("/dependents")
+	public List<Dependent> findAllDependents(){
+		
+		List<Dependent> dependent = (List<Dependent>) dependentRepository.findAll();
+		
+		return dependent;
+	}
+	
+	@GetMapping("/dependent/{id}")
+	public Dependent findById(@PathVariable(value = "id") int dependentId) {
+		
+		Dependent dependent = dependentRepository.findById(dependentId);
+		
+		return dependent;
+	} 
+	
+	@GetMapping("/enrollee/{id}/dependents")
+	public List<Dependent> findDependentsByEnrollee(@PathVariable(value = "id") int enrolleeId){
+		
+		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
+		
+		List<Dependent> dependent = enrollee.getDependents();
+		
+		return dependent;
+	}
+	
+	@PostMapping("/enrollee/{id}/dependent")
+	public Dependent addDependent(@PathVariable(name = "id") int enrolleeId, @Valid @RequestBody Dependent newDependent) {
+		
+		
+		Dependent dependent = dependentRepository.save(newDependent);
+		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
+		
+		List<Dependent> dependents = enrollee.getDependents();
+		
+		dependents.add(dependent);
+		
+		enrollee.setDependents(dependents);
+		
+		enrolleeRepository.save(enrollee);
+		
+		return dependent;
+	}
+	
+	@PutMapping("/enrollee/{id}/dependent/{id}")
+	public ResponseEntity<Dependent> updateDependent(@PathVariable(value = "id") int dependentId, Dependent newDependent ){
+		
+		Dependent dependent = dependentRepository.findById(dependentId);
+		
+		dependent.setFirstName(newDependent.getFirstName());
+		dependent.setLastName(newDependent.getLastName());
+		dependent.setBirthday(newDependent.getBirthday());
+		
+		final Dependent updatedDependent = dependentRepository.save(dependent);
+		
+		
+		return ResponseEntity.ok(updatedDependent);
+	}
+	
+	@DeleteMapping("/enrollee/{id}/dependent/{id}")
+	public ResponseEntity<Dependent> deleteDependent(@PathVariable(value = "id") int enrolleeId, @PathVariable(value = "id") int dependentId){
+		
+		Enrollee enrollee = enrolleeRepository.findById(enrolleeId);
+		Dependent dependent = dependentRepository.findById(dependentId);
+		
+		List<Dependent> dependents = enrollee.getDependents();
+		for(int i = 0;i>dependents.size();i++) {
+			if(dependents.get(i).equals(dependent)) {
+				dependents.remove(i);
+			}	
+		}
+		
+		dependentRepository.deleteById(dependentId);
+		
+		return ResponseEntity.ok().build();
+	}
+
+}

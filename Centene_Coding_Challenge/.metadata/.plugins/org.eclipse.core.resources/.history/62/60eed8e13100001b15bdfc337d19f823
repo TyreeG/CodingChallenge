@@ -1,0 +1,13 @@
+package com.eureka.hcpeureka;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class HcpEurekaApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HcpEurekaApplication.class, args);
+	}
+
+}

@@ -1,0 +1,5 @@
+package com.codingchallenge.HCPrepository;
+
+public interface DependentRepository {
+
+}

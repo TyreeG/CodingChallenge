@@ -1,0 +1,33 @@
+package com.codingchallenge.HCPservice;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.codingchallenge.HCPmodel.Enrollee;
+import com.codingchallenge.HCPrepository.EnrolleeRepository;
+
+@Service
+public class EnrolleeService {
+	
+	@Autowired
+	private EnrolleeRepository enrolleeRepository;
+	
+	public Enrollee findById(int enrolleeId) {
+		
+		Optional<Enrollee> enrollee = enrolleeRepository.findById(enrolleeId);
+		return enrollee;
+	}
+	public List<Enrollee> findAllEnrollees(){
+		
+		List<Enrollee> enrollee = (List<Enrollee>) enrolleeRepository.findAll(); 
+		
+		return enrollee;
+	}
+	public void deleteById(int id ) {
+		
+		enrolleeRepository.deleteById(id);
+	}
+}

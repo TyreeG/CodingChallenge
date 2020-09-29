@@ -1,0 +1,72 @@
+package com.codingchallenge.HCP;
+
+import java.util.Date;
+
+import org.joda.time.LocalDate;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import com.codingchallenge.HCPmodel.Dependent;
+
+import oracle.sql.DATE;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = HcpDependentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class HcpDependentApplicationTests{
+	
+	@Autowired
+	private TestRestTemplate restTemplate;
+
+	@LocalServerPort
+	private int port;
+
+	private String getRootUrl() {
+		return "http://localhost:" + port;
+	}
+
+	@Test
+	public void contextLoads() {
+	}
+
+	@Test
+	public void testFIndAllDependents() {
+		HttpHeaders headers = new HttpHeaders();
+		HttpEntity<String> entity = new HttpEntity<String>(null, headers);
+
+		ResponseEntity<String> response = restTemplate.exchange(getRootUrl() + "/dependents",
+				HttpMethod.GET, entity, String.class);
+
+		Assert.assertNotNull(response.getBody());
+	}
+	
+	@Test
+	public void testGetUserById() {
+		Dependent dependent = restTemplate.getForObject(getRootUrl() + "/users/1", Dependent.class);
+		System.out.println(dependent.getFirstName());
+		Assert.assertNotNull(dependent);
+	}
+
+	@Test
+	public void testCreateUser() {
+		
+		Dependent dependent = new Dependent();
+		dependent.setFirstName("John");
+		dependent.setLastName("Doe");
+		dependent.setBirthday("2009-08-18");
+
+		ResponseEntity<Dependent> postResponse = restTemplate.postForEntity(getRootUrl() + "/users", dependent, Dependent.class);
+		Assert.assertNotNull(postResponse);
+		Assert.assertNotNull(postResponse.getBody());
+	}
+
+}
